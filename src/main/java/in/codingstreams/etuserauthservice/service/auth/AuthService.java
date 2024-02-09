@@ -5,4 +5,6 @@ import in.codingstreams.etuserauthservice.service.model.AuthResponse;
 
 public interface AuthService {
   AuthResponse signUp(AuthRequest authRequest);
+
+  AuthResponse login(AuthRequest authRequest);
 }

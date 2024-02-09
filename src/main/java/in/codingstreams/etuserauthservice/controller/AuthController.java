@@ -34,4 +34,15 @@ public class AuthController {
         .status(HttpStatus.OK)
         .body(AuthResponseMapper.INSTANCE.toAuthResponseDto(authResponse));
   }
+
+  @PostMapping("/login")
+  public ResponseEntity<AuthResponseDto> login(@RequestBody AuthRequestDto authRequestDto){
+    log.info(METHOD_LOG_START, "login");
+    var authResponse = authService.login(AuthRequestMapper.INSTANCE.toAuthRequest(authRequestDto));
+
+    log.info(METHOD_LOG_END, "login");
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(AuthResponseMapper.INSTANCE.toAuthResponseDto(authResponse));
+  }
 }

@@ -8,6 +8,8 @@ import in.codingstreams.etuserauthservice.service.model.AuthResponse;
 import in.codingstreams.etuserauthservice.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,5 +55,33 @@ public class AuthServiceImpl implements AuthService{
     return AuthResponse.builder()
         .accessToken(accessToken)
         .build();
+  }
+
+  @Override
+  public AuthResponse login(AuthRequest authRequest) {
+    log.info(METHOD_LOG_START, "login");
+
+    // Get user by email/username
+    var appUser = appUserRepo.findByEmail(authRequest.getEmail())
+        .orElseThrow(() -> {
+          log.error(METHOD_LOG_ERROR, "login", "UsernameNotFoundException");
+
+          return new UsernameNotFoundException(authRequest.getEmail() + " not found!");
+        });
+
+    // Check passwords
+    if(passwordEncoder.matches(authRequest.getPassword(), appUser.getPassword())){
+      // return AuthResponse
+      var accessToken = JwtUtils.generateAccessToken(authRequest.getEmail());
+
+      log.info(METHOD_LOG_END, "login");
+
+      return AuthResponse.builder()
+          .accessToken(accessToken)
+          .build();
+    }
+
+    log.error(METHOD_LOG_ERROR, "login", "BadCredentialsException");
+    throw new BadCredentialsException("Password not matched!");
   }
 }

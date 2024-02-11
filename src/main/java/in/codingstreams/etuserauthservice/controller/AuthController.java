@@ -2,8 +2,12 @@ package in.codingstreams.etuserauthservice.controller;
 
 import in.codingstreams.etuserauthservice.controller.mapper.AuthRequestMapper;
 import in.codingstreams.etuserauthservice.controller.mapper.AuthResponseMapper;
+import in.codingstreams.etuserauthservice.controller.mapper.VerifyTokenRequestMapper;
+import in.codingstreams.etuserauthservice.controller.mapper.VerifyTokenResponseMapper;
 import in.codingstreams.etuserauthservice.controller.model.AuthRequestDto;
 import in.codingstreams.etuserauthservice.controller.model.AuthResponseDto;
+import in.codingstreams.etuserauthservice.controller.model.VerifyTokenRequestDto;
+import in.codingstreams.etuserauthservice.controller.model.VerifyTokenResponseDto;
 import in.codingstreams.etuserauthservice.service.auth.AuthService;
 import in.codingstreams.etuserauthservice.service.model.AuthResponse;
 import lombok.RequiredArgsConstructor;
@@ -44,5 +48,18 @@ public class AuthController {
     return ResponseEntity
         .status(HttpStatus.OK)
         .body(AuthResponseMapper.INSTANCE.toAuthResponseDto(authResponse));
+  }
+
+  @PostMapping("/verify-token")
+  public ResponseEntity<VerifyTokenResponseDto> verifyToken(@RequestBody VerifyTokenRequestDto verifyTokenRequestDto){
+    log.info(METHOD_LOG_START, "verifyToken");
+    var verifyTokenResponse = authService.verifyToken(
+        VerifyTokenRequestMapper.INSTANCE.toVerifyTokenRequest(verifyTokenRequestDto)
+    );
+
+    log.info(METHOD_LOG_END, "verifyToken");
+    return ResponseEntity
+        .status(HttpStatus.OK)
+        .body(VerifyTokenResponseMapper.INSTANCE.toVerifyTokenResponseDto(verifyTokenResponse));
   }
 }

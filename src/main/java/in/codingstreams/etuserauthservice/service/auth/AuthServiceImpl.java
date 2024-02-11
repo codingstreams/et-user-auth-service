@@ -2,9 +2,12 @@ package in.codingstreams.etuserauthservice.service.auth;
 
 import in.codingstreams.etuserauthservice.data.model.AppUser;
 import in.codingstreams.etuserauthservice.data.repo.AppUserRepo;
+import in.codingstreams.etuserauthservice.exception.InvalidTokenException;
 import in.codingstreams.etuserauthservice.exception.UserAlreadyExistsException;
 import in.codingstreams.etuserauthservice.service.model.AuthRequest;
 import in.codingstreams.etuserauthservice.service.model.AuthResponse;
+import in.codingstreams.etuserauthservice.service.model.VerifyTokenRequest;
+import in.codingstreams.etuserauthservice.service.model.VerifyTokenResponse;
 import in.codingstreams.etuserauthservice.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +16,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 import static in.codingstreams.etuserauthservice.constant.LoggingConstant.*;
 
@@ -83,5 +88,27 @@ public class AuthServiceImpl implements AuthService{
 
     log.error(METHOD_LOG_ERROR, "login", "BadCredentialsException");
     throw new BadCredentialsException("Password not matched!");
+  }
+
+  @Override
+  public VerifyTokenResponse verifyToken(VerifyTokenRequest verifyTokenRequest) {
+    log.info(METHOD_LOG_START, "verifyToken");
+    var usernameOptional = JwtUtils.getUsernameFromToken(verifyTokenRequest.getAccessToken());
+
+    if(usernameOptional.isEmpty()){
+      log.error(METHOD_LOG_ERROR, "verifyToken", "InvalidTokenException");
+      throw new InvalidTokenException("Invalid Access Token");
+    }
+
+    var appUser = appUserRepo.findByEmail(usernameOptional.get())
+        .orElseThrow(() -> {
+          log.error(METHOD_LOG_ERROR, "verifyToken", "InvalidTokenException");
+          return new InvalidTokenException("Invalid Access Token");
+        });
+
+    log.info(METHOD_LOG_END, "verifyToken");
+    return VerifyTokenResponse.builder()
+        .userId(appUser.getUserId())
+        .build();
   }
 }
